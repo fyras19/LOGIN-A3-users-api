@@ -5,6 +5,7 @@ import dotenv from 'dotenv'
 dotenv.config()
 
 const port = +process.env.PORT ?? 5000
+const host = "0.0.0.0"
 
 const startServer = async () => {
     try {
@@ -16,7 +17,7 @@ const startServer = async () => {
 
         server.register(userRouter, { prefix: '/api/user' })
 
-        await server.listen({ port: port }, errorHandler)
+        await server.listen({ host, port }, errorHandler)
     } catch (e) {
         console.error(e)
     }

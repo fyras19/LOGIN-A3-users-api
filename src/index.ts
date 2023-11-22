@@ -1,8 +1,10 @@
 import fastify from "fastify";
 import { userRouter } from "./routes/user.routes";
-//import fastifyPostgres from "@fastify/postgres";
+import dotenv from 'dotenv'
 
-const port = 5000;
+dotenv.config()
+
+const port = +process.env.PORT ?? 5000
 
 const startServer = async () => {
     try {
@@ -12,13 +14,9 @@ const startServer = async () => {
             server.log.error(error, address)
         }
 
-        /* server.register(fastifyPostgres, {
-            connectionString: 'postgres://jdhdauqd:UM5xH4ElNGBjV2Xn5RDW-drFpbuW6UQ2@flora.db.elephantsql.com/jdhdauqd'
-        }) */
-
         server.register(userRouter, { prefix: '/api/user' })
 
-        await server.listen({ port }, errorHandler)
+        await server.listen({ port: port }, errorHandler)
     } catch (e) {
         console.error(e)
     }

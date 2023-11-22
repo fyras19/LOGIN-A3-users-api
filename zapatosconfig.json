@@ -1,0 +1,12 @@
+{
+    "db": {
+        "connectionString": "postgres://{{PGUSER}}:{{PGPASSWORD}}@{{PGHOST}}/{{PGDATABASE}}"
+    },
+    "outDir": "./src",
+    "schemas": {
+        "public": {
+            "include": ["users"],
+            "exclude": []
+        }
+    }
+}

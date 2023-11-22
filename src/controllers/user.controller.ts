@@ -1,5 +1,8 @@
 import { FastifyReply, FastifyRequest } from "fastify";
 import { IUser } from "interfaces";
+import * as db from "zapatos/db"
+import pool from "../db/pgPool"
+import type * as s from 'zapatos/schema'
 
 const staticUsers: IUser[] = [
     {
@@ -8,15 +11,14 @@ const staticUsers: IUser[] = [
     },
     {
         id: 2,
-        name: 'Jeremy Corbyn'
+        name: 'Omar Little'
     }
 ]
 
 export const listUsers = async (request: FastifyRequest, reply: FastifyReply) => {
-    Promise.resolve(staticUsers)
-        .then(users => {
-            reply.send({data: users})
-        })
+    return db.select("users", db.all)
+        .run(pool)
+        .then(users => ({ data: users }))
 }
 
 type GetUserRequest = FastifyRequest<{
@@ -25,12 +27,14 @@ type GetUserRequest = FastifyRequest<{
 
 export const getUser = async (request: GetUserRequest, reply: FastifyReply) => {
     const { userId } = request.params;
-    Promise.resolve(staticUsers.find(user => user.id === +userId))
+    return db.selectOne("users", { user_id: +userId })
+        .run(pool)
         .then(user => {
             if (user)
-                reply.send({ data: user })
+                reply.send({ user })
             else reply.send({ error: "User not found" })
         })
+        .catch(err => console.error(err))
 }
 
 type AddUserRequest = FastifyRequest<{
@@ -39,20 +43,10 @@ type AddUserRequest = FastifyRequest<{
 
 export const addUser = async (request: AddUserRequest, reply: FastifyReply) => {
     const { name } = request.body;
-    /* if (!name) {
-        reply.send({ error: "Name not specified!" })
-        return
-    } */
-    Promise.resolve(staticUsers)
-        .then(users => {
-            const user = { id: users.length+1, name }
-            try {
-                users.push(user)
-                reply.send({ user, message: "User added successfully" })
-            } catch (error) {
-                reply.send({ error: "Error! User was not added" })
-            }
-        })
+    return db.insert("users", { name })
+        .run(pool)
+        .then(user => ({ user, message: "User added successfully" }))
+        .catch(err => ({ message: "Could not add user", error: err }))
 }
 
 type UpdateUserRequest = FastifyRequest<{
@@ -63,13 +57,8 @@ type UpdateUserRequest = FastifyRequest<{
 export const updateUser = async (request: UpdateUserRequest, reply: FastifyReply) => {
     const newUserData = request.body;
     const { userId } = request.params;
-    Promise.resolve(staticUsers.find(user => user.id === +userId))
-        .then(user => {
-            if (user) {
-                if (newUserData.name) user.name = newUserData.name
-                if (newUserData.score) user.score = newUserData.score
-                reply.send({ user, message: "User data updated successfully" })                
-            }
-            else reply.send({ error: "User not found" })
-        })
+    return db.update("users", newUserData, { user_id: +userId })
+        .run(pool)
+        .then(user => ({ user, message: "User updated successfully" }))
+        .catch(err => ({ message:"Could not update user", error: err }))
 }

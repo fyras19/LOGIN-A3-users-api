@@ -1,0 +1,25 @@
+version: '3.0'
+
+services:
+  users-api:
+    build: .
+    ports:
+      - 5000:5000
+    environment:
+      - PGUSER=postgres
+      - PGPASSWORD=postgres
+      - PGHOST=postgres
+      - PGDATABASE=users
+    depends_on:
+      - postgres
+  
+  postgres:
+    image: postgres:12.1-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: users
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5432:5432"
